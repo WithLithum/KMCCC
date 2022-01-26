@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2015
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMCCC.Simple", "KMCCC.Simple\KMCCC.Simple.csproj", "{E01C5429-D887-45BB-91D6-AEACD8EEEF1D}"
 EndProject
@@ -11,11 +11,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMCCC.Basic", "KMCCC.Basic\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMCCC.Pro", "KMCCC.Pro\KMCCC.Pro.csproj", "{4270E717-21EE-46CF-A55A-B8AF33BBCB54}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMCCC.Core", "KMCCC.Core\KMCCC.Core.csproj", "{F9955E14-B1C9-42B1-B977-AAA0A8471E3A}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		KMCCC.Shared\KMCCC.Shared.projitems*{564f0af1-50e3-4ab4-a3b1-9a73882c3f3b}*SharedItemsImports = 13
-		KMCCC.Shared\KMCCC.Shared.projitems*{4270e717-21ee-46cf-a55a-b8af33bbcb54}*SharedItemsImports = 4
 		KMCCC.Shared\KMCCC.Shared.projitems*{2b35c1fd-5e62-416e-b125-7577ef8ba1fb}*SharedItemsImports = 4
+		KMCCC.Shared\KMCCC.Shared.projitems*{4270e717-21ee-46cf-a55a-b8af33bbcb54}*SharedItemsImports = 4
+		KMCCC.Shared\KMCCC.Shared.projitems*{564f0af1-50e3-4ab4-a3b1-9a73882c3f3b}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,8 +36,15 @@ Global
 		{4270E717-21EE-46CF-A55A-B8AF33BBCB54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4270E717-21EE-46CF-A55A-B8AF33BBCB54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4270E717-21EE-46CF-A55A-B8AF33BBCB54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9955E14-B1C9-42B1-B977-AAA0A8471E3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9955E14-B1C9-42B1-B977-AAA0A8471E3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9955E14-B1C9-42B1-B977-AAA0A8471E3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9955E14-B1C9-42B1-B977-AAA0A8471E3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD565130-52CF-42F7-840E-4445838A1079}
 	EndGlobalSection
 EndGlobal
