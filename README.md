@@ -1,70 +1,44 @@
-KMCCC
-=====
+# KMCCC
 
-[![Join the chat at https://gitter.im/MineStudio/KMCCC](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/MineStudio/KMCCC?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build status](https://ci.appveyor.com/api/projects/status/rcvigdmue86kad2o?svg=true)](https://ci.appveyor.com/project/ZhaiSoul/kmccc)
+This is basically a port of KMCCC to the modern .NET. Also it merges Shared and Basic, rename Basic to Core, rename Pro to Extensions, and removed tracking.
 
+## Features
 
-如果你需要中文的介绍信息，请打开README_CN.md
+### Core Module
 
-An OpenSource Minecraft Launcher for .Net Developers
+The basic launching features.
 
-## KMCCC.Shared
-
-Shared Code Between KMCCC.Basic & KMCCC.Pro
-
-### Included:
-
-- Basic Launch Model (LauncherCore, LaunchOptions, ...)
-- Authentication Model (Yggdrasil, Offline, ...)
-- Java & System Information Finder
-- Zip Module using .Net Internal API ( MS.Internal.IO.Zip.* )
+- Launching (LauncherCore, LaunchOptions, ...)
+- Authentication (Yggdrasil, Offline, ...)
+- Java & System Information
+- Zipping
 - Basic VersionLocator (JVersion)
 - A set of useful extensions
-- A launch reporter that can be disabled
 - Custom authentication server
 
-## KMCCC.Basic
+### Extensions
 
-Basic Version of KMCCC
+Some extensions.
 
-### Included:
-
-- Everything in kMCCC.Shared
-- No more
-
-## KMCCC.Pro
-
-Professional Version of KMCCC
-
-### Included:
-
-- Everything in KMCCC.Shared
 - Mojang API
-- [WIP] Game File Download & Fix & Check (Including Version, Library, Native&Assets)
-- [WIP] More useful extensions for LaunchHandle
-- [WIP] More useful libraries that a launch might need.
+- Assets, Libraries and Client files download & verify
 
-## Plan
+## Examples
 
-We plan to delay some parameter settings, (such as versionLocator) and make more features available in KMCCC.Pro
-
-# Sample
-
-## How to initialize a LauncherCore
+### Creating a Launcher instance
 
 ```csharp
 
 LauncherCore core = LauncherCore.Create(
-	new LauncherCoreCreationOption(
-		javaPath: Config.Instance.JavaPath, // by default it will be the first version finded
-		gameRootPath: null, // by defualt it will be ./.minecraft/
-		versionLocator: the Version Locator // by default it will be new JVersionLocator()
-	));
+    new LauncherCoreCreationOption(
+        javaPath: Config.Instance.JavaPath, // by default it will be the first version finded
+        gameRootPath: null, // by defualt it will be ./.minecraft/
+        versionLocator: the Version Locator // by default it will be new JVersionLocator()
+    ));
 
 ```
 
-## How to find Versions
+### Locate versions
 
 ```csharp
 
@@ -74,33 +48,24 @@ var version = core.GetVersion("1.8");
 
 ```
 
-*unlaunchable Version will be ignored*
+Unsupported versions are simply ignored.
 
-## How to launch Minecraft
-
+### Launching Minecraft
 
 ```csharp
 var result = core.Launch(new LaunchOptions
 {
-	Version = App.LauncherCore.GetVersion(server.VersionId)
-	Authenticator = new OfflineAuthenticator("Steve"), // offline
-	//Authenticator = new YggdrasilLogin("*@*.*", "***", true), // online
-	MaxMemory = Config.Instance.MaxMemory, // optional
-	MinMemory = Config.Instance.MaxMemory, // optional
-	Mode = LaunchMode.MCLauncher, // optional
-	Server = new ServerInfo {Address = "mc.hypixel.net"}, //optional
-	Size = new WindowSize {Height = 768, Width = 1280} //optional
+    Version = App.LauncherCore.GetVersion(server.VersionId)
+    Authenticator = new OfflineAuthenticator("Steve"), // offline
+    //Authenticator = new YggdrasilLogin("*@*.*", "***", true), // online
+    MaxMemory = Config.Instance.MaxMemory, // optional
+    MinMemory = Config.Instance.MaxMemory, // optional
+    Mode = LaunchMode.MCLauncher, // optional
+    Server = new ServerInfo {Address = "mc.hypixel.net"}, //optional
+    Size = new WindowSize {Height = 768, Width = 1280} //optional
 }, (Action<MinecraftLaunchArguments>) (x => { })); // optional ( modify arguments before launching
 ```
 
-## Using anonymous report ##
+## License
 
-```csharp
-Reporter.SetClientName("Your launcher's name"); // set name
-Reporter.SetReportLevel(ReportLevel.Full); // full report
-//Reporter.SetReportLevel(ReportLevel.Basic); // basic report
-//Reporter.SetReportLevel(ReportLevel.Min); // simplified report
-//Reporter.SetReportLevel(ReportLevel.None); // turn off
-```
-
-# Enjoy!
+Licensed under GNU Lesser General Public License, either version 3, or (at your opinion), any later version.
