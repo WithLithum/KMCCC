@@ -31,8 +31,8 @@
 				args.CGCEnabled = true;
 				args.MainClass = options.Version.MainClass;
 				args.MaxMemory = options.MaxMemory;
-                args.AgentPath = options.AgentPath;
-                args.MinMemory = options.MinMemory;
+				args.AgentPath = options.AgentPath;
+				args.MinMemory = options.MinMemory;
 				args.NativePath = GameRootPath + @"\$natives";
 				foreach (var native in options.Version.Natives)
 				{
@@ -54,33 +54,33 @@
 				args.Libraries.Add(this.GetVersionJarPath(options.Version.JarId));
 				args.MinecraftArguments = options.Version.MinecraftArguments;
 
-                string AssetsPath = options.Version.Assets == "legacy" ? "assets\\virtual\\legacy" : "assets";
-                args.Tokens.Add("auth_access_token", authentication.AccessToken);
+				string AssetsPath = options.Version.Assets == "legacy" ? "assets\\virtual\\legacy" : "assets";
+				args.Tokens.Add("auth_access_token", authentication.AccessToken);
 				args.Tokens.Add("auth_session", authentication.AccessToken);
 				args.Tokens.Add("auth_player_name", authentication.DisplayName);
 				args.Tokens.Add("version_name", options.Version.Id);
 				args.Tokens.Add("game_directory", ".");
-                args.Tokens.Add("game_assets", AssetsPath);
-                args.Tokens.Add("assets_root", AssetsPath);
-                args.Tokens.Add("assets_index_name", options.Version.Assets);
+				args.Tokens.Add("game_assets", AssetsPath);
+				args.Tokens.Add("assets_root", AssetsPath);
+				args.Tokens.Add("assets_index_name", options.Version.Assets);
 				args.Tokens.Add("auth_uuid", authentication.UUID.GoString());
 				args.Tokens.Add("user_properties", authentication.Properties);
 				args.Tokens.Add("user_type", authentication.UserType);
-                args.Tokens.Add("version_type", options.VersionType ?? "KMCCC");
+				args.Tokens.Add("version_type", options.VersionType ?? "KMCCC");
 
-                if (options.Features.ContainsKey("has_custom_resolution"))
-                {
-                    args.Tokens.Add("resolution_width", options.Size.Width.ToString());
-                    args.Tokens.Add("resolution_height", options.Size.Height.ToString());
-                    args.Size = new WindowSize() { FullScreen = options.Size.FullScreen };
-                    args.Features.Add("has_custom_resolution");
-                }
-                else
-                {
-                    args.Size = options.Size;
-                }
+				if (options.Features.ContainsKey("has_custom_resolution"))
+				{
+					args.Tokens.Add("resolution_width", options.Size.Width.ToString());
+					args.Tokens.Add("resolution_height", options.Size.Height.ToString());
+					args.Size = new WindowSize() { FullScreen = options.Size.FullScreen };
+					args.Features.Add("has_custom_resolution");
+				}
+				else
+				{
+					args.Size = options.Size;
+				}
 
-                args.AdvencedArguments = new List<string> {"-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true"};
+				args.AdvencedArguments = new List<string> {"-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true"};
 
 				args.Authentication = authentication;
 				args.Version = options.Version;
@@ -116,8 +116,8 @@
 				{
 					try
 					{
-                        opt?.Invoke(args);
-                    }
+						opt?.Invoke(args);
+					}
 					catch (Exception exp)
 					{
 						return new LaunchResult {Success = false, ErrorType = ErrorType.OperatorException, ErrorMessage = "指定的操作器引发了异常", Exception = exp};
@@ -207,8 +207,8 @@
 		{
 			if (GameLog != null)
 			{
-                //Console.WriteLine(line);
-                GameLog(handle, line);
+				//Console.WriteLine(line);
+				GameLog(handle, line);
 			}
 		}
 
@@ -216,8 +216,8 @@
 		{
 			if (GameExit != null)
 			{
-                GameExit(handle, code);
-            }
+				GameExit(handle, code);
+			}
 		}
 
 		#endregion

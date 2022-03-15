@@ -66,6 +66,13 @@ var result = core.Launch(new LaunchOptions
 }, (Action<MinecraftLaunchArguments>) (x => { })); // 可选 ( 启动前修改参数
 ```
 
+## 基本改动
+
+- [ ] 所有的文档全部改写为英文并且变的严肃，并遵循 Microsoft Docs 文档格式
+- [ ] 将不必要的内容删除
+- [ ] 升级到 .NET 6
+- [ ] 移除启动报告
+
 ## 许可证
 
 本项目依照 GNU LGPL v3（及以后版本）许可。
