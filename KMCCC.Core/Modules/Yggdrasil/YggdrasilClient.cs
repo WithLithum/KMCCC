@@ -4,8 +4,11 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using LitJson;
 using System.IO;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Net.Http.Json;
+using System.Reflection.Metadata.Ecma335;
 
 namespace KMCCC.Modules.Yggdrasil;
 
@@ -80,102 +83,46 @@ public class YggdrasilClient
         UUID = Guid.Parse(response.SelectedProfile.Id);
     }
 
-    public Exception? Refresh(bool twitchEnabled = true)
-    {
-        lock (_locker)
-        {
-            try
-            {
-                using (var wc = new HttpClient())
-                {
-                    var requestBody = JsonMapper.ToJson(new RefreshRequest
-                    {
-                        Agent = Agent.Minecraft,
-                        AccessToken = AccessToken,
-                        RequestUser = twitchEnabled,
-                        ClientToken = ClientToken.ToString("N")
-                    });
-                    var responseBody = wc.SendAsync(new HttpRequestMessage
-                    {
-                        Method = HttpMethod.Post,
-                        RequestUri = new Uri(Auth_Refresh),
-                        Content = new StringContent(requestBody)
-                    });
-                    var response = JsonMapper.ToObject<AuthenticationResponse>(responseBody.Result.Content.ReadAsStringAsync().Result);
-                    if (response.AccessToken == null)
-                    {
-                        return new UnauthorizedAccessException("Failed to acquired token.");
-                    }
-                    if (response.SelectedProfile == null)
-                    {
-                        return new UnauthorizedAccessException("The provided account does not have a profile.");
-                    }
-                    UpdateFomrResponse(response);
-                    return null;
-                }
-            }
-            catch (WebException ex)
-            {
-                try
-                {
-                    using (StreamReader sr = new StreamReader(((HttpWebResponse)ex.Response).GetResponseStream(), true))
-                    {
-                        var ErrorJson = JsonMapper.ToObject<AuthenticationResponse>(sr.ReadToEnd());
-                        return new Exception(ErrorJson.ErrorMessage);
-                    }
-                }
-                catch
-                {
-                    return ex;
-                }
-            }
-        }
-    }
-
-    public Exception Refresh(String accessToken, bool twitchEnabled = true)
+    public Exception? Refresh(string accessToken, bool twitch = true)
     {
         lock (_locker)
         {
             Clear();
             try
             {
-                using (WebClient wc = new WebClient())
+                using (var hc = new HttpClient())
                 {
-                    var requestBody = JsonMapper.ToJson(new RefreshRequest
+                    var request = new RefreshRequest
                     {
                         Agent = Agent.Minecraft,
                         AccessToken = accessToken,
-                        RequestUser = twitchEnabled,
+                        RequestUser = twitch,
                         ClientToken = ClientToken.ToString("N")
-                    });
-                    var responseBody = wc.UploadString(new Uri(Auth_Refresh), requestBody);
-                    var response = JsonMapper.ToObject<AuthenticationResponse>(responseBody);
-                    if (response.AccessToken == null)
+                    };
+
+                    var response = hc.PostAsync(Auth_Refresh,
+                        JsonContent.Create(request)).GetAwaiter().GetResult();
+
+                    if (response == null)
                     {
-                        return new Exception("获取AccessToken失败");
+                        throw new HttpRequestException("Request was null.");
                     }
-                    if (response.SelectedProfile == null)
+                    response.EnsureSuccessStatusCode();
+                    var responseBody = response.Content.ReadFromJsonAsync<AuthenticationResponse>()
+                        .Result;
+
+                    if (responseBody == null || responseBody.AccessToken == null || responseBody.SelectedProfile == null)
                     {
-                        return new Exception("获取SelectedProfile失败，可能该账号没有购买游戏");
+                        throw new HttpRequestException("Response or one of it's components were null. Make sure the account owns Minecraft.");
                     }
-                    UpdateFomrResponse(response);
+
+                    UpdateFomrResponse(responseBody);
                     return null;
                 }
             }
-            catch (WebException ex)
+            catch (Exception ex)
             {
-                try
-                {
-                    using (StreamReader sr = new StreamReader(((HttpWebResponse)ex.Response).GetResponseStream(), true))
-                    {
-                        var ErrorJson = JsonMapper.ToObject<AuthenticationResponse>(sr.ReadToEnd());
-                        return new Exception(ErrorJson.ErrorMessage);
-                    }
-                }
-                catch
-                {
-                    return ex;
-                }
+                return ex;
             }
         }
     }
@@ -192,7 +139,7 @@ public class YggdrasilClient
                 Http.Method = "POST";
                 Http.ContentType = "application/json";
                 Http.Timeout = 100000;
-                var requestBody = JsonMapper.ToJson(new ValidateRequest
+                var requestBody = JsonSerializer.Serialize(new ValidateRequest
                 {
                     AccessToken = accessToken,
                     ClientToken = ClientToken.ToString("N"),
@@ -221,7 +168,7 @@ public class YggdrasilClient
                     {
                         using (StreamReader sr = new StreamReader(hwr.GetResponseStream()))
                         {
-                            var response = JsonMapper.ToObject<Error>(sr.ReadToEnd());
+                            var response = JsonSerializer.Deserialize<Error>(sr.ReadToEnd());
                             return new Exception(response.ErrorMessage);
                         }
                     }
@@ -234,7 +181,7 @@ public class YggdrasilClient
                 {
                     using (StreamReader sr = new StreamReader(((HttpWebResponse)ex.Response).GetResponseStream(), true))
                     {
-                        var ErrorJson = JsonMapper.ToObject<Error>(sr.ReadToEnd());
+                        var ErrorJson = JsonSerializer.Deserialize<Error>(sr.ReadToEnd());
                         return new Exception(ErrorJson.ErrorMessage);
                     }
                 }
@@ -259,7 +206,7 @@ public class YggdrasilClient
                 using (WebClient wc = new WebClient())
                 {
                     wc.Headers.Add("Content-Type", "application/json");
-                    var requestBody = JsonMapper.ToJson(new AuthenticationRequest
+                    var requestBody = JsonSerializer.Serialize(new AuthenticationRequest
                     {
                         Agent = Agent.Minecraft,
                         Email = email,
@@ -269,7 +216,7 @@ public class YggdrasilClient
                         ClientToken = ClientToken.ToString("N")
                     });
                     var responseBody = wc.UploadString(new Uri(Auth_Authentication), requestBody);
-                    var response = JsonMapper.ToObject<AuthenticationResponse>(responseBody);
+                    var response = JsonSerializer.Deserialize<AuthenticationResponse>(responseBody);
                     if (response.AccessToken == null)
                     {
                         return new Exception("获取AccessToken失败");
@@ -289,7 +236,7 @@ public class YggdrasilClient
                     using (StreamReader sr = new StreamReader(((HttpWebResponse)ex.Response).GetResponseStream(), true))
                     {
 
-                        var ErrorJson = JsonMapper.ToObject<AuthenticationResponse>(sr.ReadToEnd());
+                        var ErrorJson = JsonSerializer.Deserialize<AuthenticationResponse>(sr.ReadToEnd());
                         return new Exception(ErrorJson.ErrorMessage);
                     }
                 }
@@ -310,7 +257,7 @@ public class YggdrasilClient
         {
             using (var wc = new WebClient())
             {
-                var requestBody = JsonMapper.ToJson(new AuthenticationRequest
+                var requestBody = JsonSerializer.Serialize(new AuthenticationRequest
                 {
                     Agent = Agent.Minecraft,
                     Email = email,
@@ -328,7 +275,7 @@ public class YggdrasilClient
                             task.SetException(e.Error);
                             return;
                         }
-                        var response = JsonMapper.ToObject<AuthenticationResponse>(e.Result);
+                        var response = JsonSerializer.Deserialize<AuthenticationResponse>(e.Result);
                         if ((response.AccessToken == null) || (response.SelectedProfile == null))
                         {
                             task.SetResult(false);
@@ -361,74 +308,74 @@ public class YggdrasilClient
 public class RefreshRequest
 {
     [JsonPropertyName("agent")]
-    public Agent Agent { get; set; }
+    public Agent? Agent { get; set; }
 
     [JsonPropertyName("accessToken")]
-    public string AccessToken { get; set; }
+    public string? AccessToken { get; set; }
 
     [JsonPropertyName("requestUser")]
     public bool RequestUser { get; set; }
 
     [JsonPropertyName("clientToken")]
-    public string ClientToken { get; set; }
+    public string? ClientToken { get; set; }
 }
 
 public class ValidateRequest
 {
     [JsonPropertyName("accessToken")]
-    public string AccessToken { get; set; }
+    public string? AccessToken { get; set; }
 
     [JsonPropertyName("clientToken")]
-    public string ClientToken { get; set; }
+    public string? ClientToken { get; set; }
 }
 
 
 public class AuthenticationRequest
 {
     [JsonPropertyName("agent")]
-    public Agent Agent { get; set; }
+    public Agent? Agent { get; set; }
 
     [JsonPropertyName("username")]
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
     [JsonPropertyName("password")]
-    public string Password { get; set; }
+    public string? Password { get; set; }
 
     [JsonPropertyName("requestUser")]
     public bool RequestUser { get; set; }
 
     [JsonPropertyName("clientToken")]
-    public string ClientToken { get; set; }
+    public string? ClientToken { get; set; }
 
     [JsonPropertyName("token")]
-    public string token { get; set; }
+    public string? token { get; set; }
 }
 
 public class AuthenticationResponse
 {
     [JsonPropertyName("clientToken")]
-    public string ClientToken { get; set; }
+    public string? ClientToken { get; set; }
 
     [JsonPropertyName("accessToken")]
-    public string AccessToken { get; set; }
+    public string? AccessToken { get; set; }
 
     [JsonPropertyName("availableProfiles")]
-    public List<GameProfile> AvailableProfiles { get; set; }
+    public List<GameProfile>? AvailableProfiles { get; set; }
 
     [JsonPropertyName("selectedProfile")]
-    public GameProfile SelectedProfile { get; set; }
+    public GameProfile? SelectedProfile { get; set; }
 
     [JsonPropertyName("user")]
-    public User User { get; set; }
+    public User? User { get; set; }
 
     [JsonPropertyName("error")]
-    public string Error { get; set; }
+    public string? Error { get; set; }
 
     [JsonPropertyName("errorMessage")]
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
     [JsonPropertyName("cause")]
-    public string Cause { get; set; }
+    public string? Cause { get; set; }
 }
 
 #endregion
@@ -436,10 +383,10 @@ public class AuthenticationResponse
 public class Error
 {
     [JsonPropertyName("error")]
-    public string ErrorType { get; set; }
+    public string ErrorType { get; set; } = "uh";
 
     [JsonPropertyName("errorMessage")]
-    public string ErrorMessage { get; set; }
+    public string ErrorMessage { get; set; } = "Unknown.";
 
 }
 

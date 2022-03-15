@@ -1,4 +1,6 @@
-﻿using LitJson;
+﻿#pragma warning disable S2696
+
+using LitJson;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using KMCCC.Modules.Minecraft.Pinging;
 
 namespace KMCCC.Modules.Minecraft;
 
@@ -14,9 +17,8 @@ namespace KMCCC.Modules.Minecraft;
 /// </summary>
 public class ServerPing
 {
-
-    private static NetworkStream _stream;
-    private static List<byte> _buffer;
+    private static NetworkStream? _stream;
+    private static List<byte>? _buffer;
     private static int _offset;
 
     private readonly string _server;
@@ -30,19 +32,17 @@ public class ServerPing
 
     public PingPayload Ping()
     {
-
         using (var client = new TcpClient())
         {
             client.Connect(_server, _port);
             if (!client.Connected)
             {
                 client.Client.Disconnect(false);
-                return new PingPayload() { error = "服务器连接失败" };
+                throw new IOException("Failed to connect to the server.");
             }
 
             _buffer = new List<byte>();
             _stream = client.GetStream();
-
 
             /*
              * Send a "Handshake" packet
@@ -66,30 +66,25 @@ public class ServerPing
             try
             {
                 var json = ReadString(buffer, buffer.Length);
-                var safejson = "{" + json.Substring(json.IndexOf('{') + 1);
+                var safejson = string.Concat("{", json.AsSpan(json.IndexOf('{') + 1));
                 client.Client.Disconnect(false);
 
                 if (!safejson.EndsWith("\"}"))
                     safejson += "\"}";
 
-
-
                 try
                 {
                     return JsonMapper.ToObject<PingPayload>(safejson);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    return new PingPayload { description = new Description { text = safejson } };
+                    return new PingPayload { Description = new Description { text = safejson } };
                 }
             }
-            catch (IOException ex)
+            catch (IOException)
             {
                 client.Client.Disconnect(false);
-                return new PingPayload()
-                {
-                    error = "服务器连接失败"
-                };
+                throw;
             }
         }
     }
@@ -98,36 +93,6 @@ public class ServerPing
     {
         return Task<PingPayload>.Factory.StartNew(Ping, token);
     }
-
-    /*
-    private static void WriteMotd(PingPayload ping)
-    {
-        Console.Write("Motd: ");
-        var chars = ping.Motd.ToCharArray();
-        for (var i = 0; i < ping.Motd.Length; i++)
-        {
-            try
-            {
-                if (chars[i] == '\u00A7' && Colours.ContainsKey(chars[i + 1]))
-                {
-                    Console.ForegroundColor = Colours[chars[i + 1]];
-                    continue;
-                }
-                if (chars[i - 1] == '\u00A7' && Colours.ContainsKey(chars[i]))
-                {
-                    continue;
-                }
-            }
-            catch (IndexOutOfRangeException)
-            {
-                // End of string
-            }
-            Console.Write(chars[i]);
-        }
-        Console.WriteLine();
-        Console.ResetColor();
-    }
-    //*/
 
     #region 读取/写入 methods
     internal static byte ReadByte(byte[] buffer)
@@ -211,57 +176,16 @@ public class ServerPing
     #endregion
 }
 
-
-#region Server ping 
-/// <summary>
-/// C# represenation of the following JSON file
-/// https://gist.github.com/thinkofdeath/6927216
-/// 参数信息请参见 http://wiki.vg/Server_List_Ping
-/// </summary>
-public class PingPayload
-{
-    /// <summary>
-    /// 服务器版本
-    /// </summary>
-    public Version version { get; set; }
-
-    /// <summary>
-    /// 服务器玩家
-    /// </summary>
-    public Players players { get; set; }
-
-    /// <summary>
-    /// 服务器信息
-    /// </summary>
-    public Description description { get; set; }
-
-    /// <summary>
-    /// 服务器Mod信息
-    /// </summary>
-    public Modinfo modinfo { get; set; }
-
-    /// <summary>
-    /// 服务器图标
-    /// </summary>
-    public string favicon { get; set; } = null;
-
-    /// <summary>
-    /// 错误信息（如果有）
-    /// </summary>
-    public string error { get; set; } = null;
-}
-
-public class Version
-{
-    public string name { get; set; }
-    public int protocol { get; set; }
-}
-
 public class Players
 {
-    public int max { get; set; }
-    public int online { get; set; }
-    public List<object> sample { get; set; }
+    [JsonPropertyName("max")]
+    public int Max { get; set; }
+
+    [JsonPropertyName("online")]
+    public int OnlineCount { get; set; }
+
+    [JsonPropertyName("sample")]
+    public List<object>? Sample { get; set; }
 }
 
 public class Extra

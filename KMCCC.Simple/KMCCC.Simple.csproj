@@ -50,6 +50,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\KMCCC.Core\KMCCC.Core.csproj">
+      <Project>{f9955e14-b1c9-42b1-b977-aaa0a8471e3a}</Project>
+      <Name>KMCCC.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\KMCCC.Pro\KMCCC.Pro.csproj">
       <Project>{4270e717-21ee-46cf-a55a-b8af33bbcb54}</Project>
       <Name>KMCCC.Pro</Name>
